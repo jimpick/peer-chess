@@ -19,7 +19,7 @@
     "url": "git+https://github.com/jbenet/peer-chess.git"
   },
   "keywords": [],
-  "author": "Juan Benet (@jbenet)",
+  "author": "Juan Benet (@jbenet) and Jim Pick (@jimpick)",
   "license": "MIT",
   "bugs": {
     "url": "https://github.com/jbenet/peer-chess/issues"
