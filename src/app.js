@@ -1,15 +1,8 @@
-var PeerStarApp = require('peer-base')
-
-// const ChessCRDT = new require('./chess-crdt')
-// var ChessBoard = require('chess.js').Chess
+var PeerBase = require('peer-base')
 
 class PeerChessApp {
 
-  constructor(gameid, elemid) {
-    this.gameid = gameid
-    // this.ccrdt = new ChessCRDT('')
-    // await this.peerApp.start()
-    // this.collab = await app.collaborate('peer-chess-' + gameid, 'rga');
+  constructor(elemid) {
     this.game = new Chess()
     this.moves = []
     this.board = ChessBoard(elemid, {
@@ -26,13 +19,22 @@ class PeerChessApp {
   }
 
   async setupPeerApp() {
-    var appname = 'peer-chess' + window.location.hash
-    console.log('loading', appname)
-    this.peerApp = PeerStarApp(appname)
+    // var appname = 'peer-chess' + window.location.hash
+    var appName = 'peer-chess'
+    console.log('loading', appName)
+    this.peerApp = PeerBase(appName)
     this.peerApp.on('error', (err) => console.error('error in app:', err))
     await this.peerApp.start()
 
-    this.collab = await this.peerApp.collaborate(appname, 'rga')
+    const keys = await PeerBase.keys.uriDecode(
+      window.peerChess.readOnlyKey + '-' + window.peerChess.keys
+    )
+    const collabName = 'fixme-derived-from-public-key'
+    this.collab = await this.peerApp.collaborate(
+      collabName,
+      'rga',
+      { keys }
+    )
     this.collab.shared.value().forEach((move) => {
       this.makeMove(move)
     })
@@ -40,11 +42,6 @@ class PeerChessApp {
     this.collab.removeAllListeners('state changed')
     this.collab.on('state changed', this.onStateChanged.bind(this))
   }
-
-  // pickSide() {
-  //   var a = Math.random()
-  //   this.peerApp.
-  // }
 
   // only pick up pieces for White
   onDragStart(source, piece, position, orientation) {
@@ -114,6 +111,6 @@ class PeerChessApp {
 }
 
 window.onDomReady = function() {
-  var app = new PeerChessApp('game', 'board')
+  var app = new PeerChessApp('board')
   return false;
 }
