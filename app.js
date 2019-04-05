@@ -1,4 +1,10 @@
-var PeerBase = require('peer-base')
+import PeerBase from 'peer-base'
+import { Chess } from 'chess.js'
+import 'oakmac-chessboard/src/chessboard.css'
+
+// Old dependencies, not ES import friendly
+window.jQuery = require('jquery')
+require('oakmac-chessboard')
 
 class PeerChessApp {
 
@@ -11,7 +17,7 @@ class PeerChessApp {
       onDragStart: this.onDragStart.bind(this),
       onDrop: this.onDrop.bind(this),
       onSnapEnd: this.onSnapEnd.bind(this),
-      pieceTheme: 'src/chessboardjs-0.3.0/img/chesspieces/wikipedia/{piece}.png',
+      pieceTheme: 'static/{piece}.png',
     })
 
     this.setupPeerApp()
@@ -110,7 +116,6 @@ class PeerChessApp {
   }
 }
 
-window.onDomReady = function() {
-  var app = new PeerChessApp('board')
-  return false;
-}
+jQuery(() => {
+  new PeerChessApp('board')
+})
