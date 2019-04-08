@@ -1,6 +1,7 @@
 import './chess-element'
 import './index.css'
 import { html, render } from 'lit-html'
+import { wormholeSend } from './wormhole'
 
 /*
 window.peerChess = {
@@ -14,19 +15,57 @@ localStorage.setItem(
 )
 */
 
+const sendStatuses = {}
+
 function top () {
   const { hash } = location
   const match = hash.match(/^#game=([1-9a-zA-Z]{47,})$/)
   if (match) {
     const readKey = match[1]
     const writeKey = localStorage.getItem(`key:${readKey}`)
+    let board
+    if (writeKey) {
+      board = html`
+        <div class="mode">
+        Playable mode
+        </div>
+        <div class="invite">
+          <button @click=${sendInvite}>Invite another player</button>
+          <span>
+            <div>${sendStatuses.code}</div>
+            <div>${sendStatuses.status}</div>
+          </span>
+        </div>
+        <chess-element game=${readKey} writeKey=${writeKey}>
+        </chess-element>
+      `
+
+      function sendInvite () {
+        wormholeSend(writeKey, updateStatuses)
+
+        function updateStatuses (newStatuses) {
+          Object.assign(sendStatuses, newStatuses)
+          r()
+        }
+      }
+    } else {
+      board = html`
+        <div class="mode">
+          Spectator mode
+        </div>
+        <div class="invite">
+          Have an invite?
+          <input type="text" id="code"></input>
+          <button id="acceptBtn">Accept Invite</button>
+        </div>
+        <chess-element game=${readKey} writeKey=${writeKey}>
+        </chess-element>
+      `
+    }
     return html`
-      <h1>Game</h1>
-
-      <chess-element game=${readKey} writeKey=${writeKey}></chess-element>
-
-      <div>
-        <a href="/">Back to Top</a>
+      ${board}
+      <div class="nav">
+        <a href="#">Back to Top</a>
       </div>
     `
   }
@@ -45,4 +84,8 @@ function r () {
 
 r()
 
-window.addEventListener('hashchange', r)
+window.addEventListener('hashchange', () => {
+  sendCode = null
+  sendStatus = null
+  r()
+})

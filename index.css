@@ -1,0 +1,12 @@
+.mode {
+  margin: 0.5rem 0.5rem;
+}
+.invite, .nav {
+  margin: 1.5rem 0.5rem;
+}
+.invite {
+  display: flex;
+}
+chess-element #board {
+  margin: 0.5rem;
+}
