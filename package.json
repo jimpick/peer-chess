@@ -14,10 +14,7 @@
   "scripts": {
     "copy-static": "mkdir -p dist/static && cp ./node_modules/oakmac-chessboard/website/img/chesspieces/wikipedia/*.png dist/static",
     "dev": "parcel --no-hmr index.html",
-    "build": "npm run copy-static && make build",
-    "serve": "make serve",
-    "publish": "make publish",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "build": "npm run copy-static && parcel build index.html"
   },
   "repository": {
     "type": "git",
