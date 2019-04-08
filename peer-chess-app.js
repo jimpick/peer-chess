@@ -1,14 +1,10 @@
 import PeerBase from 'peer-base'
 import { Chess } from 'chess.js'
-import 'oakmac-chessboard/src/chessboard.css'
+import ChessBoard from './chessboard'
 
-// Old dependencies, not ES import friendly
-window.jQuery = require('jquery')
-require('oakmac-chessboard')
+export default class PeerChessApp {
 
-class PeerChessApp {
-
-  constructor(elemid) {
+  constructor(elemid, readKey, writeKey) {
     this.game = new Chess()
     this.moves = []
     this.board = ChessBoard(elemid, {
@@ -17,8 +13,12 @@ class PeerChessApp {
       onDragStart: this.onDragStart.bind(this),
       onDrop: this.onDrop.bind(this),
       onSnapEnd: this.onSnapEnd.bind(this),
-      pieceTheme: 'static/{piece}.png',
+      pieceTheme: '/static/{piece}.png',
     })
+    this.readKey = readKey
+    if (writeKey !== 'null') {
+      this.writeKey = writeKey
+    }
 
     this.setupPeerApp()
     this.processedMoves = []
@@ -32,9 +32,11 @@ class PeerChessApp {
     this.peerApp.on('error', (err) => console.error('error in app:', err))
     await this.peerApp.start()
 
-    const keys = await PeerBase.keys.uriDecode(
-      window.peerChess.readOnlyKey + '-' + window.peerChess.keys
-    )
+    let encodedKeys = this.readKey
+    if (this.writeKey) {
+      encodedKeys += '-' + this.writeKey
+    }
+    const keys = await PeerBase.keys.uriDecode(encodedKeys)
     const collabName = 'fixme-derived-from-public-key'
     this.collab = await this.peerApp.collaborate(
       collabName,
@@ -51,6 +53,7 @@ class PeerChessApp {
 
   // only pick up pieces for White
   onDragStart(source, piece, position, orientation) {
+    if (!this.writeKey) return false
     console.log('onDragStart')
 
     // do not pick up pieces if the game is over
@@ -115,7 +118,3 @@ class PeerChessApp {
     return move
   }
 }
-
-jQuery(() => {
-  new PeerChessApp('board')
-})
