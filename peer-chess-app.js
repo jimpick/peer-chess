@@ -37,7 +37,7 @@ export default class PeerChessApp {
       encodedKeys += '-' + this.writeKey
     }
     const keys = await PeerBase.keys.uriDecode(encodedKeys)
-    const collabName = 'fixme-derived-from-public-key'
+    const collabName = 'fixme-derived-from-public-key-' + this.readKey
     this.collab = await this.peerApp.collaborate(
       collabName,
       'rga',

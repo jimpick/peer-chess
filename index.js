@@ -1,7 +1,7 @@
 import './chess-element'
 import './index.css'
 import { html, render } from 'lit-html'
-import { wormholeSend } from './wormhole'
+import { wormholeSend, wormholeReceive } from './wormhole'
 
 /*
 window.peerChess = {
@@ -15,7 +15,8 @@ localStorage.setItem(
 )
 */
 
-const sendStatuses = {}
+let sendStatuses = {}
+let receiveStatus
 
 function top () {
   const { hash } = location
@@ -56,11 +57,28 @@ function top () {
         <div class="invite">
           Have an invite?
           <input type="text" id="code"></input>
-          <button id="acceptBtn">Accept Invite</button>
+          <button @click=${acceptInvite}>Accept Invite</button>
+        </div>
+        <div>
+          ${receiveStatus}
         </div>
         <chess-element game=${readKey} writeKey=${writeKey}>
         </chess-element>
       `
+
+      async function acceptInvite () {
+        const code = document.getElementById('code').value
+        const secret = await wormholeReceive(code, updateStatus)
+        if (secret) {
+          localStorage.setItem(`key:${readKey}`, secret)
+          r()
+        }
+
+        function updateStatus (newStatus) {
+          receiveStatus = newStatus
+          r()
+        }
+      }
     }
     return html`
       ${board}
@@ -85,7 +103,7 @@ function r () {
 r()
 
 window.addEventListener('hashchange', () => {
-  sendCode = null
-  sendStatus = null
+  sendStatuses = {}
+  receiveStatus = null
   r()
 })

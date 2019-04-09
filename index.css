@@ -7,6 +7,9 @@
 .invite {
   display: flex;
 }
+.invite input {
+  width: 12rem;
+}
 chess-element #board {
   margin: 0.5rem;
 }

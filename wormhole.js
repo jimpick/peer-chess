@@ -1,11 +1,6 @@
 const host = 'wormhole.jimpick.com'
 const origin = `https://${host}`
 const wsOrigin = `wss://${host}`
-/*
- const host = 'localhost:38881'
- const origin = `http://${host}`
- const wsOrigin = `ws://${host}`
-*/
 
 export async function wormholeSend (secret, update) {
   try {
@@ -33,5 +28,26 @@ export async function wormholeSend (secret, update) {
   } catch (e) {
     console.error('Exception', e)
     update({ code: '', status: e.message })
+  }
+}
+
+export async function wormholeReceive (code, update) {
+  try {
+    update('receiving')
+    const res = await fetch(`${origin}/receive/${code}`)
+    if (res.status !== 200) {
+      try {
+        const json = await res.json()
+        update(`Error code: ${res.status}, ${json.error}`)
+      } catch (e) {
+        update(`Error code: ${res.status}`)
+      }
+      return
+    }
+    const secret = await res.text()
+    return secret.replace('\n', '')
+  } catch (e) {
+    console.error('Exception', e)
+    update(e.message)
   }
 }
