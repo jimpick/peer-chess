@@ -1,19 +1,8 @@
 import './chess-element'
 import './index.css'
 import { html, render } from 'lit-html'
+import PeerBase from 'peer-base'
 import { wormholeSend, wormholeReceive } from './wormhole'
-
-/*
-window.peerChess = {
-  readOnlyKey: '4XTTMHah9LTpgQMvdQMWT56BE3pMbvCaeT2d7t2SVoXeT7eVS',
-  // Temporary: Don't embed secret key
-  keys: 'K3TgTf67cunaTnZnPM6EuK6PxJPxaJNqe6ziWr8FFihtjVmeJJYt9Z9372D877Pq277US74kCvLs3XHAwtXHTdEkpKBqxomgJrJBdt6gJjayUQLANA5acyeniAEVVbeMMDAkzvEx'
-}
-localStorage.setItem(
-  `key:${window.peerChess.readOnlyKey}`,
-  window.peerChess.keys
-)
-*/
 
 let sendStatuses = {}
 let receiveStatus
@@ -42,7 +31,7 @@ function top () {
       `
 
       function sendInvite () {
-        wormholeSend(writeKey, updateStatuses)
+        wormholeSend(readKey + '-' + writeKey, updateStatuses)
 
         function updateStatuses (newStatuses) {
           Object.assign(sendStatuses, newStatuses)
@@ -70,7 +59,13 @@ function top () {
         const code = document.getElementById('code').value
         const secret = await wormholeReceive(code, updateStatus)
         if (secret) {
-          localStorage.setItem(`key:${readKey}`, secret)
+          const keys = secret.split('-')
+          if (keys[0] !== readKey) {
+            receiveStatus = 'Received key is for different game'
+            r()
+            return
+          }
+          localStorage.setItem(`key:${readKey}`, keys[1])
           r()
         }
 
@@ -90,10 +85,46 @@ function top () {
   return html`
     <h1>PeerChess</h1>
 
+    <div>
+      <button @click=${startNewGame}>Start New Game</button>
+    </div>
+
+    <div class="invite">
+      Have an invite?
+      <input type="text" id="code"></input>
+      <button @click=${acceptInviteTop}>Accept Invite</button>
+    </div>
+    <div>
+      ${receiveStatus}
+    </div>
+
     <ul>
       <li><a href="#game=4XTTMHah9LTpgQMvdQMWT56BE3pMbvCaeT2d7t2SVoXeT7eVS">Game 1</a></li>
     </ul>
   `
+
+  async function startNewGame () {
+    const keys = await PeerBase.keys.generate()
+    const readKey = PeerBase.keys.uriEncodeReadOnly(keys)
+    const writeKey = PeerBase.keys.uriEncode(keys).replace(/^.*-/, '')
+    localStorage.setItem(`key:${readKey}`, writeKey)
+    location.hash = `game=${readKey}`
+  }
+
+  async function acceptInviteTop () {
+    const code = document.getElementById('code').value
+    const secret = await wormholeReceive(code, updateStatus)
+    if (secret) {
+      const [readKey, writeKey] = secret.split('-')
+      localStorage.setItem(`key:${readKey}`, writeKey)
+      location.hash = `game=${readKey}`
+    }
+
+    function updateStatus (newStatus) {
+      receiveStatus = newStatus
+      r()
+    }
+  }
 }
 
 function r () {

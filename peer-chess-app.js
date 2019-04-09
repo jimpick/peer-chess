@@ -51,6 +51,12 @@ export default class PeerChessApp {
     this.collab.on('state changed', this.onStateChanged.bind(this))
   }
 
+  async destroy () {
+    console.log('Destroy app')
+    await this.collab.stop()
+    await this.peerApp.stop()
+  }
+
   // only pick up pieces for White
   onDragStart(source, piece, position, orientation) {
     if (!this.writeKey) return false

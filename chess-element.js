@@ -19,7 +19,17 @@ class ChessElement extends HTMLElement {
   connectedCallback () {
     const readKey = this.getAttribute('game')
     const writeKey = this.getAttribute('writeKey')
-    new PeerChessApp(this.wrapper, readKey, writeKey)
+    console.log('Connected', readKey, writeKey)
+    this.app = new PeerChessApp(this.wrapper, readKey, writeKey)
+  }
+
+  disconnectedCallback () {
+    console.log('Disconnected')
+    this.app.destroy()
+  }
+
+  attributeChangedCallback (name, oldValue, newValue) {
+    console.log('Jim attribute changed', name, oldValue, newValue)
   }
 }
 
