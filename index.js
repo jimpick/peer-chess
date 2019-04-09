@@ -2,6 +2,7 @@ import './chess-element'
 import './index.css'
 import { html, render } from 'lit-html'
 import PeerBase from 'peer-base'
+import clipboardCopy from 'clipboard-copy'
 import { wormholeSend, wormholeReceive } from './wormhole'
 
 let sendStatuses = {}
@@ -15,6 +16,18 @@ function top () {
     const writeKey = localStorage.getItem(`key:${readKey}`)
     let board
     if (writeKey) {
+      let clipboardBtn
+      if (sendStatuses.code) {
+        clipboardBtn = html`
+          <button @click=${copyToClipboard}>
+            Copy to Clipboard
+          </button>
+        `
+
+        function copyToClipboard () {
+          clipboardCopy(sendStatuses.code)
+        }
+      }
       board = html`
         <div class="mode">
         Playable mode
@@ -22,7 +35,7 @@ function top () {
         <div class="invite">
           <button @click=${sendInvite}>Invite another player</button>
           <span>
-            <div>${sendStatuses.code}</div>
+            <div>${sendStatuses.code} ${clipboardBtn}</div>
             <div>${sendStatuses.status}</div>
           </span>
         </div>
@@ -45,7 +58,7 @@ function top () {
         </div>
         <div class="invite">
           Have an invite?
-          <input type="text" id="code"></input>
+          <input type="text" id="code" autocomplete="off"></input>
           <button @click=${acceptInvite}>Accept Invite</button>
         </div>
         <div>
@@ -133,7 +146,7 @@ function top () {
 
     <div class="invite">
       Have an invite?
-      <input type="text" id="code"></input>
+      <input type="text" id="code" autocomplete="off"></input>
       <button @click=${acceptInviteTop}>Accept Invite</button>
     </div>
     <div>
