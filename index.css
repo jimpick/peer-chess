@@ -13,3 +13,6 @@
 chess-element #board {
   margin: 0.5rem;
 }
+.gameList {
+  font-family: monospace;
+}

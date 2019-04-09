@@ -76,12 +76,54 @@ function top () {
       }
     }
     return html`
+      <h1>PeerChess: Game ${readKey.slice(-4)}</h1>
       ${board}
       <div class="nav">
         <a href="#">Back to Top</a>
       </div>
     `
   }
+
+  let games
+  try {
+    games = JSON.parse(localStorage.getItem('games'))
+    if (!games) {
+      games = []
+    }
+  } catch (e) {
+    games = []
+  }
+
+  let gamesHtml
+  if (games && games.length > 0) {
+    gamesHtml = html`
+      <ul class="gameList">
+      ${games.map(({ timestamp, key }) => {
+        const date = new Date(timestamp)
+        return html`
+          <li>
+            <a href="#game=${key}">Game ${key.slice(-4)}</a> 
+            ${date.toDateString()} -
+            ${date.toTimeString().slice(0, 5)}
+            [<a href="#remove" @click=${remove}>x</a>]
+          </li>
+        `
+
+        function remove (e) {
+          games = games.filter(
+            ({ key: gameKey }) => (gameKey !== key)
+          )
+          localStorage.setItem('games', JSON.stringify(games))
+          r()
+          e.preventDefault()
+        }
+      })}
+      </ul>
+    `
+  } else {
+    gamesHtml = html`<div>No games saved.</div>`
+  }
+
   return html`
     <h1>PeerChess</h1>
 
@@ -98,9 +140,7 @@ function top () {
       ${receiveStatus}
     </div>
 
-    <ul>
-      <li><a href="#game=4XTTMHah9LTpgQMvdQMWT56BE3pMbvCaeT2d7t2SVoXeT7eVS">Game 1</a></li>
-    </ul>
+    ${gamesHtml}
   `
 
   async function startNewGame () {
@@ -108,6 +148,7 @@ function top () {
     const readKey = PeerBase.keys.uriEncodeReadOnly(keys)
     const writeKey = PeerBase.keys.uriEncode(keys).replace(/^.*-/, '')
     localStorage.setItem(`key:${readKey}`, writeKey)
+    saveGame(readKey)
     location.hash = `game=${readKey}`
   }
 
@@ -117,6 +158,7 @@ function top () {
     if (secret) {
       const [readKey, writeKey] = secret.split('-')
       localStorage.setItem(`key:${readKey}`, writeKey)
+      saveGame(readKey)
       location.hash = `game=${readKey}`
     }
 
@@ -124,6 +166,11 @@ function top () {
       receiveStatus = newStatus
       r()
     }
+  }
+
+  function saveGame (key) {
+    games.push({ timestamp: Date.now(), key })
+    localStorage.setItem('games', JSON.stringify(games))
   }
 }
 
